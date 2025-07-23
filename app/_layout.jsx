@@ -23,9 +23,30 @@ export default function RootLayout() {
   const [text, setText] = useState("");
 
   const addTask = () => {
-    const newTask = { id: tasks.length + 1, completed: false, text };
+    if (text.trim() === "") return;
+    const newTask = { id: Date.now(), completed: false, text };
     setTasks([...tasks, newTask]);
     setText("");
+  };
+
+  const removeTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  const toggleTask = (id) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const editTask = (id, newText) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, text: newText } : task
+      )
+    );
   };
 
   return (
@@ -55,9 +76,16 @@ export default function RootLayout() {
 
       <FlatList
         data={tasks}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <Task text={item.text} initialCompleted={item.completed} />
+          <Task
+            id={item.id}
+            text={item.text}
+            initialCompleted={item.completed}
+            onRemove={() => removeTask(item.id)}
+            onToggle={() => toggleTask(item.id)}
+            onEdit={editTask}
+          />
         )}
       />
     </View>
