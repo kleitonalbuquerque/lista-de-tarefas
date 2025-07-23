@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   Image,
@@ -12,12 +12,21 @@ import logo from "../assets/images/abacate.png";
 import Task from "../components/Task";
 import { colors } from "../constants/colors";
 
+const initialTasks = [
+  { id: 1, completed: true, text: "Fazer café" },
+  { id: 2, completed: false, text: "Estudar React Native" },
+  { id: 3, completed: false, text: "Academia" },
+];
+
 export default function RootLayout() {
-  const tasks = [
-    { id: 1, completed: true, text: "Fazer café" },
-    { id: 2, completed: false, text: "Estudar React Native" },
-    { id: 3, completed: false, text: "Academia" },
-  ];
+  const [tasks, setTasks] = useState(initialTasks);
+  const [text, setText] = useState("");
+
+  const addTask = () => {
+    const newTask = { id: tasks.length + 1, completed: false, text };
+    setTasks([...tasks, newTask]);
+    setText("");
+  };
 
   return (
     <View style={style.mainContainer}>
@@ -27,13 +36,18 @@ export default function RootLayout() {
       </View>
 
       <View style={style.rowContainer}>
-        <TextInput style={style.input} placeholder="Digite uma tarefa" />
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          style={style.input}
+          placeholder="Digite uma tarefa"
+        />
         <Pressable
           style={({ pressed }) => [
             style.button,
             { backgroundColor: pressed ? colors.primary : colors.secondary },
           ]}
-          onPress={() => alert("Oi")}
+          onPress={addTask}
         >
           <Text style={style.buttonText}>+</Text>
         </Pressable>
@@ -42,7 +56,9 @@ export default function RootLayout() {
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <Task text={item.text} />}
+        renderItem={({ item }) => (
+          <Task text={item.text} initialCompleted={item.completed} />
+        )}
       />
     </View>
   );
