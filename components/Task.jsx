@@ -1,6 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Directions,
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
 import { colors } from "../constants/colors";
 
 export default function Task({
@@ -30,46 +35,57 @@ export default function Task({
     }
   };
 
+  const flingGesture = Gesture.Fling()
+    .direction(Directions.RIGHT)
+    .onStart(() => {
+      onRemove && onRemove();
+    });
+
   return (
-    <View style={style.rowContainer}>
-      <Pressable
-        onPress={() => {
-          setCompleted(!completed);
-          onToggle && onToggle();
-        }}
-      >
-        <Ionicons
-          name="checkmark-circle"
-          size={32}
-          color={completed ? colors.primary : "gray"}
-        />
-      </Pressable>
-      {editing ? (
-        <TextInput
-          value={editText}
-          onChangeText={setEditText}
-          style={style.input}
-          onSubmitEditing={handleSave}
-          onBlur={handleSave}
-          autoFocus
-        />
-      ) : (
-        <Text
-          style={[
-            style.text,
-            completed && { textDecorationLine: "line-through", color: "gray" },
-          ]}
+    <GestureDetector gesture={flingGesture}>
+      <View style={style.rowContainer}>
+        <Pressable
+          onPress={() => {
+            setCompleted(!completed);
+            onToggle && onToggle();
+          }}
         >
-          {text}
-        </Text>
-      )}
-      <Pressable onPress={() => setEditing(true)}>
-        <Ionicons name="pencil" size={24} color={colors.primary} />
-      </Pressable>
-      <Pressable onPress={onRemove}>
-        <Ionicons name="trash" size={24} color="red" />
-      </Pressable>
-    </View>
+          <Ionicons
+            name="checkmark-circle"
+            size={32}
+            color={completed ? colors.primary : "gray"}
+          />
+        </Pressable>
+        {editing ? (
+          <TextInput
+            value={editText}
+            onChangeText={setEditText}
+            style={style.input}
+            onSubmitEditing={handleSave}
+            onBlur={handleSave}
+            autoFocus
+          />
+        ) : (
+          <Text
+            style={[
+              style.text,
+              completed && {
+                textDecorationLine: "line-through",
+                color: "gray",
+              },
+            ]}
+          >
+            {text}
+          </Text>
+        )}
+        <Pressable onPress={() => setEditing(true)}>
+          <Ionicons name="pencil" size={24} color={colors.primary} />
+        </Pressable>
+        <Pressable onPress={onRemove}>
+          <Ionicons name="trash" size={24} color="red" />
+        </Pressable>
+      </View>
+    </GestureDetector>
   );
 }
 
@@ -80,13 +96,18 @@ const style = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     marginBottom: 10,
+    padding: 10,
+    elevation: 3, // Add shadow for Android
+    shadowColor: "#000", // iOS shadow color
+    shadowOpacity: 0.1, // iOS shadow opacity
+    shadowOffset: { width: 0, height: 2 }, // iOS shadow offset
+    backgroundColor: "white", // Background color for better visibility
   },
   input: {
     borderBottomWidth: 1,
     borderColor: colors.primary,
     minWidth: 100,
     fontSize: 16,
-    padding: 2,
   },
   text: {
     fontSize: 16,
