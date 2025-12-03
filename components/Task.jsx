@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, TextInput } from "react-native";
 import {
   Directions,
   Gesture,
@@ -19,6 +19,7 @@ export default function Task({
   const [completed, setCompleted] = useState(initialCompleted);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(text);
+  const swipe = new Animated.Value(0);
 
   useEffect(() => {
     setCompleted(initialCompleted);
@@ -38,12 +39,20 @@ export default function Task({
   const flingGesture = Gesture.Fling()
     .direction(Directions.RIGHT)
     .onStart(() => {
-      onRemove && onRemove();
+      Animated.timing(swipe, {
+        toValue: 200,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        onRemove && onRemove();
+      });
     });
 
   return (
     <GestureDetector gesture={flingGesture}>
-      <View style={style.rowContainer}>
+      <Animated.View
+        style={[style.rowContainer, { transform: [{ translateX: swipe }] }]}
+      >
         <Pressable
           onPress={() => {
             setCompleted(!completed);
@@ -84,7 +93,7 @@ export default function Task({
         <Pressable onPress={onRemove}>
           <Ionicons name="trash" size={24} color="red" />
         </Pressable>
-      </View>
+      </Animated.View>
     </GestureDetector>
   );
 }
