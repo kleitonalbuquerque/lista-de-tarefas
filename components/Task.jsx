@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, TextInput } from "react-native";
 import {
@@ -30,21 +31,28 @@ export default function Task({
   }, [text]);
 
   const handleSave = () => {
-    if (editText.trim() !== "") {
-      onEdit(id, editText);
+    const trimmed = editText.trim();
+    if (trimmed === "") {
+      // Se vazio, sai da edição sem alterar
+      setEditText(text);
       setEditing(false);
+      return;
     }
+    onEdit && onEdit(id, trimmed);
+    setEditing(false);
   };
 
   const flingGesture = Gesture.Fling()
     .direction(Directions.RIGHT)
-    .onStart(() => {
+    .onEnd(() => {
       Animated.timing(swipe, {
         toValue: 200,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         onRemove && onRemove();
+        swipe.setValue(0);
       });
     });
 
@@ -54,9 +62,13 @@ export default function Task({
         style={[style.rowContainer, { transform: [{ translateX: swipe }] }]}
       >
         <Pressable
+          disabled={editing}
           onPress={() => {
-            setCompleted(!completed);
+            if (editing) return;
+            const next = !completed;
+            setCompleted(next);
             onToggle && onToggle();
+            Haptics.selectionAsync();
           }}
         >
           <Ionicons
@@ -75,22 +87,29 @@ export default function Task({
             autoFocus
           />
         ) : (
-          <Text
-            style={[
-              style.text,
-              completed && {
-                textDecorationLine: "line-through",
-                color: "gray",
-              },
-            ]}
-          >
-            {text}
-          </Text>
+          <Pressable onPress={() => setEditing(true)} style={{ flex: 1 }}>
+            <Text
+              style={[
+                style.text,
+                completed && {
+                  textDecorationLine: "line-through",
+                  color: "gray",
+                },
+              ]}
+            >
+              {text}
+            </Text>
+          </Pressable>
         )}
         <Pressable onPress={() => setEditing(true)}>
           <Ionicons name="pencil" size={24} color={colors.primary} />
         </Pressable>
-        <Pressable onPress={onRemove}>
+        <Pressable
+          onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            onRemove && onRemove();
+          }}
+        >
           <Ionicons name="trash" size={24} color="red" />
         </Pressable>
       </Animated.View>
@@ -117,6 +136,8 @@ const style = StyleSheet.create({
     borderColor: colors.primary,
     minWidth: 100,
     fontSize: 16,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
   },
   text: {
     fontSize: 16,
