@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-export default function Button(addTask) {
+export default function Button({ addTask }) {
   return (
-    <Pressable style={style.button}>
+    <Pressable style={style.button} onPress={addTask}>
       <Text style={style.buttonText}>+</Text>
     </Pressable>
   );

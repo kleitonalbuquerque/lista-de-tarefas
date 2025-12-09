@@ -15,12 +15,6 @@ import Button from "../components/Button";
 import Task from "../components/Task";
 import { colors } from "../constants/colors";
 
-// const initialTasks = [
-//   { id: 1, completed: true, text: "Fazer café" },
-//   { id: 2, completed: false, text: "Estudar React Native" },
-//   { id: 3, completed: false, text: "Academia" },
-// ];
-
 export default function Index() {
   const [tasks, setTasks] = useState([]);
   const [text, setText] = useState("");
