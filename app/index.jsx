@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
-  Pressable,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import logo from "../assets/images/abacate.png";
+import Button from "../components/Button";
 import Task from "../components/Task";
 import { colors } from "../constants/colors";
 
@@ -95,9 +96,7 @@ export default function Index() {
             returnKeyType="done"
             onSubmitEditing={addTask}
           />
-          <Pressable style={style.button} onPress={addTask}>
-            <Text style={style.buttonText}>+</Text>
-          </Pressable>
+          <Button addTask={addTask} />
         </View>
 
         <FlatList
@@ -115,6 +114,16 @@ export default function Index() {
             />
           )}
         />
+
+        {Platform.OS === "android" && (
+          <Text>Total de tarefas no Android: {tasks.length}</Text>
+        )}
+        {Platform.OS === "ios" && (
+          <Text>Total de tarefas no iOS: {tasks.length}</Text>
+        )}
+        {Platform.OS === "web" && (
+          <Text>Total de tarefas na Web: {tasks.length}</Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -139,19 +148,6 @@ const style = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 20,
     flexGrow: 1,
-  },
-  button: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 20,
   },
   mainContainer: {
     flex: 1,
