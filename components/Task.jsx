@@ -1,7 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, TextInput } from "react-native";
+import {
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+} from "react-native";
 import {
   Directions,
   Gesture,
@@ -42,22 +49,29 @@ export default function Task({
     setEditing(false);
   };
 
-  const flingGesture = Gesture.Fling()
-    .direction(Directions.RIGHT)
-    .onEnd(() => {
-      Animated.timing(swipe, {
-        toValue: 200,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        onRemove && onRemove();
-        swipe.setValue(0);
-      });
-    });
+  // Disable fling on Android to avoid conflict with system back gesture
+  const flingGesture =
+    Platform.OS === "android"
+      ? undefined
+      : Gesture.Fling()
+          .direction(Directions.RIGHT)
+          .onEnd(() => {
+            Animated.timing(swipe, {
+              toValue: 200,
+              duration: 300,
+              useNativeDriver: true,
+            }).start(() => {
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success
+              );
+              onRemove && onRemove();
+              swipe.setValue(0);
+            });
+          });
 
   return (
-    <GestureDetector gesture={flingGesture}>
+    // Only attach GestureDetector on non-Android platforms
+    Platform.OS === "android" ? (
       <Animated.View
         style={[style.rowContainer, { transform: [{ translateX: swipe }] }]}
       >
@@ -113,7 +127,67 @@ export default function Task({
           <Ionicons name="trash" size={24} color="red" />
         </Pressable>
       </Animated.View>
-    </GestureDetector>
+    ) : (
+      <GestureDetector gesture={flingGesture}>
+        <Animated.View
+          style={[style.rowContainer, { transform: [{ translateX: swipe }] }]}
+        >
+          <Pressable
+            disabled={editing}
+            onPress={() => {
+              if (editing) return;
+              const next = !completed;
+              setCompleted(next);
+              onToggle && onToggle();
+              Haptics.selectionAsync();
+            }}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={32}
+              color={completed ? colors.primary : "gray"}
+            />
+          </Pressable>
+          {editing ? (
+            <TextInput
+              value={editText}
+              onChangeText={setEditText}
+              style={style.input}
+              onSubmitEditing={handleSave}
+              onBlur={handleSave}
+              autoFocus
+            />
+          ) : (
+            <Pressable onPress={() => setEditing(true)} style={{ flex: 1 }}>
+              <Text
+                style={[
+                  style.text,
+                  completed && {
+                    textDecorationLine: "line-through",
+                    color: "gray",
+                  },
+                ]}
+              >
+                {text}
+              </Text>
+            </Pressable>
+          )}
+          <Pressable onPress={() => setEditing(true)}>
+            <Ionicons name="pencil" size={24} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success
+              );
+              onRemove && onRemove();
+            }}
+          >
+            <Ionicons name="trash" size={24} color="red" />
+          </Pressable>
+        </Animated.View>
+      </GestureDetector>
+    )
   );
 }
 

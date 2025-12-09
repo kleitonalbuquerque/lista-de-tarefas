@@ -1,4 +1,5 @@
-import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -12,18 +13,42 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import logo from "../assets/images/abacate.png";
 import Task from "../components/Task";
 import { colors } from "../constants/colors";
-// Web DnD: usar elementos DOM (div) para garantir compatibilidade com a lib
-const Div = (props) => <div {...props} />;
 
-const initialTasks = [
-  { id: 1, completed: true, text: "Fazer café" },
-  { id: 2, completed: false, text: "Estudar React Native" },
-  { id: 3, completed: false, text: "Academia" },
-];
+// const initialTasks = [
+//   { id: 1, completed: true, text: "Fazer café" },
+//   { id: 2, completed: false, text: "Estudar React Native" },
+//   { id: 3, completed: false, text: "Academia" },
+// ];
 
 export default function Index() {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState([]);
   const [text, setText] = useState("");
+
+  useEffect(() => {
+    const getTasksAsyncStorage = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem("tasks");
+        if (jsonValue !== null) {
+          setTasks(JSON.parse(jsonValue));
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    getTasksAsyncStorage();
+  }, []);
+
+  useEffect(() => {
+    const setTasksAsyncStorage = async () => {
+      try {
+        const jsonValue = JSON.stringify(tasks);
+        await AsyncStorage.setItem("tasks", jsonValue);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    setTasksAsyncStorage();
+  }, [tasks]);
 
   const addTask = () => {
     if (text.trim() === "") return;
